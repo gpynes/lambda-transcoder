@@ -2,56 +2,48 @@ import { Stack, Construct, Duration } from '@aws-cdk/core'
 import { Map, StateMachine, Task } from '@aws-cdk/aws-stepfunctions'
 import { InvokeFunction } from '@aws-cdk/aws-stepfunctions-tasks'
 import { Bucket } from '@aws-cdk/aws-s3'
-import { InlineFunction } from './InlineFunction'
-import { FfmpegLayer } from './FfmpegLayer'
+import { TranscodeLambda } from './TranscodeLambda'
 
 export class ElasticTranscode extends Stack {
   constructor(scope: Construct, id: string) {
     super(scope, id)
 
-    const ffmpegLayer = FfmpegLayer(this)
-
-    const sourceBucket = new Bucket(this, 'SourceBucket')
-    const probeHandler = new InlineFunction(this, 'ProbeHandler', {
-      function: probeHandlerFunction,
+    // Lambdas
+    const probeHandler = new TranscodeLambda(this, 'ProbeHandler', {
+      handler: 'probeHandler',
       timeout: Duration.minutes(2),
-      layers: [ffmpegLayer],
     })
+    const assemblerHandler = new TranscodeLambda(this, 'AssemblerHandler', {
+      handler: 'assemblerHandler'
+    })
+    const transcodePartHandler = new TranscodeLambda(this, 'TranscodePartHandler',{
+      handler : 'transcodePartHandler',
+      timeout: Duration.minutes(2)
+    })
+
+    // S3 Bucket
+    const sourceBucket = new Bucket(this, 'SourceBucket')
     sourceBucket.grantRead(probeHandler)
-
-    const probeTask = new Task(this, 'Probe', {
-      task: new InvokeFunction(probeHandler),
-    })
-
-    const assemblerHandler = new InlineFunction(this, 'AssemblerHandler', {
-      function: assemblerHandlerFunction,
-      layers: [ffmpegLayer],
-    })
-    const assembleParts = new Task(this, 'AssembleParts', {
-      task: new InvokeFunction(assemblerHandler),
-    })
-
-    const transcodePartHandler = new InlineFunction(
-      this,
-      'TranscodePartHandler',
-      {
-        function: transcodePartHandlerFunction,
-        timeout: Duration.minutes(1),
-        layers: [ffmpegLayer],
-      },
-    )
-
     sourceBucket.grantReadWrite(transcodePartHandler)
 
-    const transcodePart = new Task(this, 'TranscodeTask', {
+    
+    
+    // Step Function Parts
+    const probeTask = new Task(this, 'ProbeTask', {
+      task: new InvokeFunction(probeHandler),
+    })
+    const assemblePartsTask = new Task(this, 'AssemblePartsTask', {
+      task: new InvokeFunction(assemblerHandler),
+    })
+    const transcodePartTask = new Task(this, 'TranscodePartTask', {
       task: new InvokeFunction(transcodePartHandler),
     })
-
-    const transcodeParts = new Map(this, 'Transcode')
-    transcodeParts.iterator(transcodePart)
-
-    const definition = probeTask.next(transcodeParts).next(assembleParts)
-
+    
+    
+    // Step Function State Machine
+    const transcodePartsTask = new Map(this, 'TranscodeParts')
+    transcodePartsTask.iterator(transcodePartTask)
+    const definition = probeTask.next(transcodePartsTask).next(assemblePartsTask)
     const stateMachine = new StateMachine(this, 'ElasticTranscodeMachine', {
       definition,
       timeout: Duration.minutes(3),
@@ -157,7 +149,7 @@ async function assemblerHandlerFunction(
     return ffmpeg
   }
 
-  function writePart(start: number, end: number, format: string, outputName) {
+  function writePart(start: number, end: number, format: string, outputName: any) {
     const partName = `${start}-${end}-${outputName}`
     const stream = ffmpeg([
       '-f',
