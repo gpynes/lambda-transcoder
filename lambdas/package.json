@@ -2,5 +2,8 @@
     "name": "distributed-transcode-lambdas",
     "dependencies": {
         "fluent-ffmpeg": "^2.1.2"
+    },
+    "devDependencies": {
+        "@types/fluent-ffmpeg": "^2.1.14"
     }
 }
