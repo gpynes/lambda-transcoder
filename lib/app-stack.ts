@@ -24,12 +24,18 @@ export class ElasticTranscode extends Stack {
       timeout: Duration.minutes(3),
       memorySize: 2048
     })
+    const cleanupHandler = new TranscodeLambda(this, 'CleanUpHandler', {
+      handler: 'cleanupHandler',
+      timeout: Duration.minutes(1),
+      memorySize: 128
+    })
 
     // S3 Bucket
     const sourceBucket = new Bucket(this, 'SourceBucket')
     sourceBucket.grantRead(probeHandler)
     sourceBucket.grantReadWrite(transcodePartHandler)
     sourceBucket.grantReadWrite(assemblerHandler)
+    sourceBucket.grantDelete(cleanupHandler)
 
 
     // Step Function Parts
@@ -42,12 +48,15 @@ export class ElasticTranscode extends Stack {
     const transcodePartTask = new Task(this, 'TranscodePartTask', {
       task: new InvokeFunction(transcodePartHandler),
     })
+    const cleanUpTask = new Task(this, 'CleanUpTask', {
+      task: new InvokeFunction(cleanupHandler),
+    })
     
     
     // Step Function State Machine
     const transcodePartsTask = new Map(this, 'TranscodeParts')
     transcodePartsTask.iterator(transcodePartTask)
-    const definition = probeTask.next(transcodePartsTask).next(assemblePartsTask)
+    const definition = probeTask.next(transcodePartsTask).next(assemblePartsTask).next(cleanUpTask)
     const stateMachine = new StateMachine(this, 'ElasticTranscodeMachine', {
       definition,
       timeout: Duration.minutes(3),

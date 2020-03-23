@@ -108,7 +108,12 @@ export const assemblerHandler = async (event: AssemblerHandlerProps[]) => {
     console.log(`The script uses approximately ${used} MB`);
     const used2 = process.memoryUsage().heapUsed / 1024 / 1024;
     console.log(`The script uses approximately ${used2} MB`);
-    return response
+    return event
+}
+
+export type CleanupHandlerProps = AssemblerHandlerProps[]
+export const cleanupHandler = async (event: CleanupHandlerProps) => {
+  return Promise.all(event.map(({ outputFileName, Bucket }) => s3.deleteObject({ Key: outputFileName, Bucket }).promise())) 
 }
 
 
