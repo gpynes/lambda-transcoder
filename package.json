@@ -24,10 +24,12 @@
   "dependencies": {
     "@aws-cdk/aws-events-targets": "^1.30.0",
     "@aws-cdk/aws-lambda": "^1.30.0",
+    "@aws-cdk/aws-lambda-nodejs": "^1.30.0",
     "@aws-cdk/aws-stepfunctions": "^1.30.0",
     "@aws-cdk/aws-stepfunctions-tasks": "^1.30.0",
     "@aws-cdk/core": "1.30.0",
     "aws-sdk": "^2.643.0",
+    "parcel-bundler": "^1.12.4",
     "source-map-support": "^0.5.16"
   }
 }
