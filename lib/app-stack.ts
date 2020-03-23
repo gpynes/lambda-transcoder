@@ -18,7 +18,8 @@ export class ElasticTranscode extends Stack {
     })
     const transcodePartHandler = new TranscodeLambda(this, 'TranscodePartHandler',{
       handler : 'transcodePartHandler',
-      timeout: Duration.minutes(2)
+      timeout: Duration.minutes(3),
+      memorySize: 512
     })
 
     // S3 Bucket
@@ -26,7 +27,7 @@ export class ElasticTranscode extends Stack {
     sourceBucket.grantRead(probeHandler)
     sourceBucket.grantReadWrite(transcodePartHandler)
 
-    
+
     
     // Step Function Parts
     const probeTask = new Task(this, 'ProbeTask', {
