@@ -10,6 +10,7 @@ cdk.out
 .cache
 
 .DS_Store
+.build
 
 .vscode
 *.mov
