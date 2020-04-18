@@ -1,6 +1,6 @@
-# Welcome to your CDK TypeScript project!
+# Welcome to my lambda transcoder
 
-This is a blank project for TypeScript development with CDK.
+This is a POC of how to use lambda to transcode video files.
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
@@ -16,7 +16,7 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
 ## Getting Started
 
-To get started first initialize the cdk using `cdk bootstrap`. Then deploy this app using `npm run build` followed by `cdk deploy`.
+To get started first initialize the cdk using `npx cdk bootstrap`. Then deploy this app using `npm run build` followed by `npx cdk deploy`.
 
 Once the app is deployed, simply upload a video file to the `source/` directory inside the `SourceBucket` that is created to trigger the pipeline (you will need to manually create the `source/` directory).
 
@@ -30,7 +30,7 @@ This is still a work in progress so it doesn't work on big videos just yet, I re
    1. A `ProbeTask` that reads the file and creates a list of **start+end** times so we can parallelize the transcoding in 5s chunks.
    2. A `TranscodeParts` task that takes the list of **start+end** times and triggers an `TranscodePartTask` for each 5s chunk to process in parallel.
    3. An `AssemblePartsTask` that takes all the chunks produced by the `TranscodePartTask`s and concats their outputs into a single file in the `output/` directory of the `SourceBucket`.
-   4. Finally a `CleanUpTask` is fired to clean up all the temporary chunks created by the `TranscodePartTask`s.
+   4. Finally a `CleanUpTask` is fired to clean up all the temporary chunks created by the `TranscodePartTasks`s.
 
 
 ![step_functions_diagram](./stepfunctions_graph.png)
