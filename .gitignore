@@ -9,6 +9,8 @@ cdk.out
 
 .cache
 
+.DS_Store
+
 .vscode
 *.mov
 *.mp4
