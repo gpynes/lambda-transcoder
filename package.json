@@ -30,7 +30,7 @@
     "@aws-cdk/aws-stepfunctions": "^1.30.0",
     "@aws-cdk/aws-stepfunctions-tasks": "^1.30.0",
     "@aws-cdk/core": "1.30.0",
-    "aws-sdk": "^2.643.0",
+    "aws-sdk": "^2.814.0",
     "parcel-bundler": "^1.12.4",
     "source-map-support": "^0.5.16"
   }
